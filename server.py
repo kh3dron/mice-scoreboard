@@ -3,17 +3,22 @@ import threading
 import hashlib
 import sys
 
-bind_ip = "127.0.0.1"
-bind_port = 5175
+def usage():
+    print("""
+    [+] Mouse Scorekeeper SERVER- run to keep score. Usage:
+    [+] python server.py <ip> <port>
+    """)
 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+if len(sys.argv) != 3:
+    usage()
+    exit(0)
 
-server.bind((bind_ip, bind_port))
-server.listen(5)
-known_teams = {}
-total_score = 0.0
-
-print("[*] MICE Scoreboard ready on %s:%d" % (bind_ip, bind_port))
+#globals
+bind_ip =           sys.argv[1]
+bind_port =     int(sys.argv[2])
+total_score =       0.0
+known_teams =       {}
+server =            socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 def metric_hashrate(count):
     count = str(count)
@@ -68,8 +73,15 @@ def handle_client(client_socket):
     client_socket.send("OK")
     client_socket.close()
 
-while True:
+def main():
 
-    client,addr = server.accept()
-    client_handler = threading.Thread(target=handle_client,args=(client,))
-    client_handler.start()
+    server.bind((bind_ip, bind_port))
+    server.listen(5)
+    print("[*] MICE Scoreboard ready on %s:%d" % (bind_ip, bind_port))
+
+    while True:
+        client,addr = server.accept()
+        client_handler = threading.Thread(target=handle_client,args=(client,))
+        client_handler.start()
+
+main()

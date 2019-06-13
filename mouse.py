@@ -4,10 +4,20 @@ import socket
 import time
 import random
 
+def usage():
+    print("""
+    [+] Mouse Scorekeeper CLIENT- run to gain points. Usage:
+    [+] python mouse.py <owner> <scoreboard IP> <port>
+    """)
+if len(sys.argv)!= 4:
+    usage()
+    exit(0)
+
 #globals
 difficulty =        5
 owner =             sys.argv[1]
 ip =                sys.argv[2]
+port =          int(sys.argv[3])
 
 def solve(owner, difficulty):
     nonce = 0
@@ -22,18 +32,10 @@ def solve(owner, difficulty):
         else:
             nonce +=1
 
-def usage():
-    print("""
-    [+] Mouse Scorekeeper CLIENT- run to gain points. Usage:"
-    [+] python mouse.py <owner> <scoreboard IP>
-    """)
-
 def send_solve(seed):
-    target_host = "127.0.0.1"   #Will figure out with the server bit, later
-    target_port = 5175
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        client.connect((target_host, target_port))
+        client.connect((ip, port))
     except:
         print("[*] Failed to connect to MICE Server, exiting")
         exit(0)
