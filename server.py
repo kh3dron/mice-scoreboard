@@ -10,11 +10,28 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 server.bind((bind_ip, bind_port))
 server.listen(5)
-print("[*] Listening on %s:%d" % (bind_ip, bind_port))
-
-#client-handling thread
-
 known_teams = {}
+total_score = 0.0
+
+print("[*] MICE Scoreboard ready on %s:%d" % (bind_ip, bind_port))
+
+def metric_hashrate(count):
+    count = str(count)
+    if len(count) < 4:
+        return count + " H"
+    elif len(count) < 7:
+        return count[:-3] + " KH"
+    elif len(count) < 10:
+        return count[:-6] + " MH"
+    elif len(count) < 13:
+        return count[:-9] + " GH"
+    elif len(count) < 16:
+        return count[:-12] + " TH"
+    elif len(count) < 19:
+        return count[:-15] + " PH"
+    elif len(count) < 22:
+        return count[:-18] + " EH"
+        #damn son
 
 def verify_seed(incoming):
     seed = hashlib.sha256(incoming[2]).hexdigest()
@@ -25,25 +42,30 @@ def handle_client(client_socket):
 
     incoming = client_socket.recv(1024)
     incoming = incoming.split("-")
-    print("[*] Hash set recieved: %s" % incoming)
-    #send back a packet
+    #print("[*] Hash set recieved: %s" % incoming)
 
     if (verify_seed(incoming)):
         print("[*] Seed Verified ")
     else:
         print("[*] Seed Verification Failed, Rejecting")
+        client_socket.send("Unsolved Hash")
+        client_socket.close()
         exit(0)
 
-    score = (16**int(incoming[0]))/2
+    score = (16**int(incoming[0]))
     if incoming[1] in known_teams:
         known_teams[incoming[1]] += score
     else:
         print("[*] New team discovered: " + incoming[1])
         known_teams[incoming[1]] = score
 
-    print("[*] Score of " + incoming[1] + " now " + str(known_teams[incoming[1]]))
+    global total_score
+    total_score += score
+    dom = str(round((known_teams[incoming[1]]/total_score) * 100, 1)) + "%"
 
-    client_socket.send("200")
+    print("[*] Score of "+incoming[1]+" now "+metric_hashrate(known_teams[incoming[1]]))
+    print("    Network control of team "+incoming[1]+" now "+str(dom))
+    client_socket.send("OK")
     client_socket.close()
 
 while True:
