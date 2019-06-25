@@ -6,16 +6,17 @@ import sys
 def usage():
     print("""
     [+] Mouse Scorekeeper SERVER- run to keep score. Usage:
-    [+] python server.py <ip> <port>
+    [+] python server.py <ip:port>
     """)
 
-if len(sys.argv) != 3:
+if len(sys.argv) != 2:
     usage()
     exit(0)
 
 #globals
-bind_ip =           sys.argv[1]
-bind_port =     int(sys.argv[2])
+terms = sys.argv[1].split(":")
+bind_ip =           terms[0]
+bind_port =         int(terms[1])
 total_score =       0.0
 known_teams =       {}
 server =            socket.socket(socket.AF_INET, socket.SOCK_STREAM)
