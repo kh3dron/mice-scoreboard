@@ -20,6 +20,7 @@ bind_port =         int(terms[1])
 total_score =       0.0
 known_teams =       {}
 server =            socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+submissions =       []
 
 def metric_hashrate(count):
     count = str(count)
@@ -51,7 +52,13 @@ def handle_client(client_socket):
     #print("[*] Hash set recieved: %s" % incoming)
 
     if (verify_seed(incoming)):
-        print("[*] Seed Verified ")
+        if incoming not in submissions:
+            print("[*] Seed Verified ")
+        else:
+            print("[*] Duplicate Submission, Rejecting")
+            client_socket.send("Duplicate Submission")
+            client_socket.close()
+            exit(0)
     else:
         print("[*] Seed Verification Failed, Rejecting")
         client_socket.send("Unsolved Hash")
@@ -67,6 +74,8 @@ def handle_client(client_socket):
 
     global total_score
     total_score += score
+    global submissions
+    submissions.append(incoming)
     dom = str(round((known_teams[incoming[1]]/total_score) * 100, 1)) + "%"
 
     print("[*] Score of "+incoming[1]+" now "+metric_hashrate(known_teams[incoming[1]]))
